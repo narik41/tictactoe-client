@@ -15,7 +15,7 @@ func NewMsgReceiver() MsgReceiver {
 }
 
 func (m *MsgReceiver) Receive(c *Client) (*core.TicTacToeMessage, error) {
-	log.Printf("Message received from server: %s", c.conn.RemoteAddr())
+	//log.Printf("Message received from server: %s", c.conn.RemoteAddr())
 	line, err := c.reader.ReadBytes('\n')
 	if err != nil {
 		log.Printf("Error reading from server: %v", err)

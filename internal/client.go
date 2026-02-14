@@ -2,15 +2,18 @@ package internal
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/narik41/tictactoe-message/core"
 )
 
 const (
-	ServerAddr   = "127.0.0.1:8080"
+	ServerAddr   = "127.0.0.1:9000"
 	retryTimeout = 60 * time.Second
 	retryDelay   = 2 * time.Second
 )
@@ -74,12 +77,41 @@ func (c *Client) Start() {
 			return
 		}
 
-		err = c.msgHandler.ProcessMessage(msg)
+		newMsgPayload, err := c.msgHandler.ProcessMessage(msg)
 		if err != nil {
 			log.Printf("Error handling message: %v", err)
 			return
 		}
+		if newMsgPayload == nil {
+			return
+		}
+
+		err = c.sendMessage(newMsgPayload)
+		if err != nil {
+			return
+		}
 	}
+}
+
+func (c *Client) sendMessage(msg *core.TicTacToeMessage) error {
+
+	msgBytes, err := json.Marshal(msg)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message: %w", err)
+	}
+
+	rw := bufio.NewReadWriter(bufio.NewReader(c.conn), bufio.NewWriter(c.conn))
+	if err := json.NewEncoder(rw.Writer).Encode(&msgBytes); err != nil {
+		log.Printf("Encoding error: %v", err)
+		return err
+	}
+
+	err = rw.Flush()
+	if err != nil {
+		log.Printf("Flush error: %v", err)
+		return err
+	}
+	return nil
 }
 
 func (c *Client) Disconnect() {
