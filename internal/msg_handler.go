@@ -1,7 +1,6 @@
 package internal
 
 import (
-	v1 "github.com/narik41/tictactoe-client/internal/v1"
 	"github.com/narik41/tictactoe-message/core"
 )
 
@@ -10,10 +9,10 @@ type MessageHandler interface {
 }
 
 type MessageHandlerImpl struct {
-	v1MsgHandler v1.Version1MsgHandler
+	v1MsgHandler Version1MsgHandler
 }
 
-func NewMessageHandler(v1MsgHandler v1.Version1MsgHandler) MessageHandler {
+func NewMessageHandler(v1MsgHandler Version1MsgHandler) MessageHandler {
 	return MessageHandlerImpl{
 		v1MsgHandler: v1MsgHandler,
 	}
