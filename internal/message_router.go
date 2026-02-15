@@ -39,7 +39,6 @@ func (r *MessageRouter) Route(msg *decoder.DecodedMessage, client *Client) (*Han
 		return nil, fmt.Errorf("unknown message type: %s", msg.MessageType)
 	}
 
-	//log.Printf("Routing %s for client %s", msg.MessageType, client.gameID)
 	response, err := handler.Handle(msg, client)
 	if err != nil {
 		return nil, fmt.Errorf("handler failed: %w", err)

@@ -19,7 +19,6 @@ func NewPlayerMoveResponseHandler(cmdUI templates.UI) PlayerMoveResponseHandler 
 }
 
 func (a PlayerMoveResponseHandler) Handle(msg *decoder.DecodedMessage, client *Client) (*HandlerResponse, error) {
-	//log.Println("PlayerMoveResponseHandler: Handling the player move response")
 	jsonBytes, err := json.Marshal(msg.Payload)
 	if err != nil {
 		return nil, err

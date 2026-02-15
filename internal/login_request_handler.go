@@ -20,7 +20,6 @@ func NewLoginRequestHandler(clientUi templates.UI) LoginRequestHandler {
 }
 
 func (a LoginRequestHandler) Handle(msg *decoder.DecodedMessage, client *Client) (*HandlerResponse, error) {
-	//log.Println("LoginRequestHandler: Display the prompt to login")
 	jsonBytes, err := json.Marshal(msg.Payload)
 	if err != nil {
 		return nil, err
@@ -31,10 +30,10 @@ func (a LoginRequestHandler) Handle(msg *decoder.DecodedMessage, client *Client)
 		return nil, err
 	}
 
-	return a.DisplayLoginForm(client)
+	return a.DisplayLoginForm()
 }
 
-func (a LoginRequestHandler) DisplayLoginForm(client *Client) (*HandlerResponse, error) {
+func (a LoginRequestHandler) DisplayLoginForm() (*HandlerResponse, error) {
 
 	username, password, err := a.clientUi.PromptCredentials()
 	if err != nil {

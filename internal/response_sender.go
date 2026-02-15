@@ -18,7 +18,7 @@ func NewResponseSender() *ResponseSender {
 
 func (rs *ResponseSender) Send(client *Client, response *HandlerResponse) error {
 
-	msgBytes, err := rs.encodeMessage(response.MessageType, response.Payload)
+	msgBytes, err := rs.encodeMessage(response.Payload)
 	if err != nil {
 		return fmt.Errorf("failed to encode: %w", err)
 	}
@@ -39,7 +39,7 @@ func (rs *ResponseSender) SendError(session *Client, errorCode, errorMessage str
 		},
 	}
 
-	msgBytes, err := rs.encodeMessage("ERROR", errorPayload)
+	msgBytes, err := rs.encodeMessage(errorPayload)
 	if err != nil {
 		return fmt.Errorf("failed to encode error: %w", err)
 	}
@@ -51,8 +51,7 @@ func (rs *ResponseSender) SendError(session *Client, errorCode, errorMessage str
 	return nil
 }
 
-// encodeMessage encodes a message to JSON bytes
-func (rs *ResponseSender) encodeMessage(messageType core.Version1MessageType, payload interface{}) ([]byte, error) {
+func (rs *ResponseSender) encodeMessage(payload interface{}) ([]byte, error) {
 
 	msg := core.TicTacToeMessage{
 		MessageId: core.UUID("msg"),
