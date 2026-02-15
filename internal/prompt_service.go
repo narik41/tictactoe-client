@@ -11,6 +11,7 @@ import (
 type ClientUI interface {
 	DisplayBoard(userSymbol string, board [9]string)
 	PromptForMove() (int, error)
+	DisplayWinner(symbol string)
 	PromptCredentials() (string, string, error)
 }
 
@@ -74,6 +75,14 @@ func (c CMDClientUI) PromptForMove() (int, error) {
 	}
 
 	return position, nil
+}
+
+func (c CMDClientUI) DisplayWinner(symbol string) {
+
+	fmt.Println("\n╔════════════════════════╗")
+	fmt.Printf("║  Game Ended. Winner %s ║\n", symbol)
+	fmt.Println("╚════════════════════════╝")
+
 }
 
 func (m CMDClientUI) PromptCredentials() (string, string, error) {

@@ -24,16 +24,14 @@ func (a GameEndHandler) Handle(msg *DecodedMessage, client *Client) (*HandlerRes
 		return nil, err
 	}
 
-	var gameStartPayload core.Version1GameEndPayload
-	if err := json.Unmarshal(jsonBytes, &gameStartPayload); err != nil {
+	var gameEndPayload core.Version1GameEndPayload
+	if err := json.Unmarshal(jsonBytes, &gameEndPayload); err != nil {
 		return nil, err
 	}
 
-	client.mySymbol = gameStartPayload.Winner
+	client.mySymbol = gameEndPayload.Winner
 	a.cmdUI.DisplayBoard(client.mySymbol, client.board)
-	if client.myTurn {
-
-	}
+	a.cmdUI.DisplayWinner(gameEndPayload.Winner)
 
 	return &HandlerResponse{
 		Relay: false,
