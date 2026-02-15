@@ -2,15 +2,11 @@ package internal
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"sync"
 	"time"
-
-	"github.com/google/uuid"
-	"github.com/narik41/tictactoe-message/core"
 )
 
 const (
@@ -31,16 +27,19 @@ type Client struct {
 	gameActive   bool
 	board        [9]string
 	name         string
-	currentBoard [9]string
 	mySymbol     string
 	ui           ClientUI
+	router       *MessageRouter
+	loginRequest LoginRequestHandler
 }
 
-func NewClient(name string, ui ClientUI) *Client {
+func NewClient(name string, ui ClientUI, router *MessageRouter, loginRequest LoginRequestHandler) *Client {
 	return &Client{
-		name:  name,
-		board: [9]string{"", "", "", "", "", "", "", "", ""},
-		ui:    ui,
+		name:         name,
+		board:        [9]string{"", "", "", "", "", "", "", "", ""},
+		ui:           ui,
+		router:       router,
+		loginRequest: loginRequest,
 	}
 }
 
@@ -72,171 +71,38 @@ func (c *Client) Connect(addr string) error {
 func (c *Client) Start() {
 	defer c.Disconnect()
 
-	newMsgPayload, err := c.doAuth()
-	if err != nil {
-		log.Printf("Error handling message: %v", err)
-		return
-	}
-
-	// send login request
-	err = c.sendMessage(newMsgPayload)
-	if err != nil {
-		log.Printf("Error sending message: %v", err)
-		return
-	}
+	responseSender := NewResponseSender()
+	//handlerResponse, err := c.loginRequest.DisplayLoginForm(c)
+	//if err != nil {
+	//	fmt.Println("Failed to display login form")
+	//	return
+	//}
+	//
+	//responseSender.Send(c, handlerResponse)
 	rw := bufio.NewReadWriter(bufio.NewReader(c.conn), bufio.NewWriter(c.conn))
+	decoder := NewMessageDecoder(rw)
 	for {
-
-		line, err := rw.ReadString('\n')
+		decodedMessage, err := decoder.Decode()
 		if err != nil {
 			log.Printf("Error %v", err)
 			return
 		}
 
-		message, err := core.DecodeMessage([]byte(line))
+		response, err := c.router.Route(decodedMessage, c)
 		if err != nil {
-			log.Printf("Invalid message from: %v", err)
+			//sender.SendError(s, "HANDLER_ERROR", err2.Error())
 			continue
 		}
 
-		jsonBytes, err := json.Marshal(message.Payload)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		var v1Msg *core.Version1MessagePayload
-		if err := json.Unmarshal(jsonBytes, &v1Msg); err != nil {
-			log.Println(err)
-		}
-
-		if v1Msg.MessageType == core.MSG_LOGIN_RESPONSE {
-			fmt.Println("Waiting for other player to join the game....")
+		if !response.Relay {
 			continue
 		}
 
-		if v1Msg.MessageType == core.PLAYER_MOVE {
-			jsonBytes, err = json.Marshal(message.Payload)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-
-			var playerMovePayload *core.Version1PositionMoveRequestPayload
-			if err := json.Unmarshal(jsonBytes, &playerMovePayload); err != nil {
-				log.Println(err)
-			}
-			c.currentBoard[playerMovePayload.Position] = playerMovePayload.Symbol
-		}
-
-		if v1Msg.MessageType == core.GAME_START {
-			jsonBytes, err = json.Marshal(v1Msg.Payload)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-
-			var gameStartPayload *core.Version1GameStartPayload
-			if err := json.Unmarshal(jsonBytes, &gameStartPayload); err != nil {
-				log.Println(err)
-			}
-			c.mySymbol = gameStartPayload.YourSymbol
-			c.myTurn = gameStartPayload.YourTurn
-		} else if v1Msg.MessageType == core.PLAYER_MOVE_RESPONSE {
-			jsonBytes, err = json.Marshal(v1Msg.Payload)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-
-			var gameStartPayload *core.Version1PositionMovedResponsePayload
-			if err := json.Unmarshal(jsonBytes, &gameStartPayload); err != nil {
-				log.Println(err)
-			}
-			c.myTurn = gameStartPayload.TurnSymbol == c.mySymbol
-			c.currentBoard[gameStartPayload.MovedToPosition] = gameStartPayload.MovedByUser
-			c.ui.DisplayBoard(c.mySymbol, c.board)
-		}
-
-		if !c.myTurn {
+		err = responseSender.Send(c, response)
+		if err != nil {
 			continue
 		}
-
-		// display board for the user to enter
-		c.ui.DisplayBoard(c.mySymbol, c.board)
-
-		move, err := c.ui.PromptForMove()
-		if err != nil {
-			fmt.Printf("Error prompting for move: %v", err)
-			continue
-		}
-		c.currentBoard[move] = c.mySymbol
-		err = c.sendMove(move)
-		if err != nil {
-			log.Printf("Error sending message: %v", err)
-			return
-		}
 	}
-}
-
-func (m *Client) doAuth() (*core.TicTacToeMessage, error) {
-	username, password, err := m.ui.PromptCredentials()
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Printf("\n Authenticating as '%s'...\n", username)
-
-	loginData := &core.TicTacToeMessage{
-		MessageId: UUID("msg"),
-		Version:   "v1",
-		Payload: &core.Version1MessagePayload{
-			MessageType: core.MSG_LOGIN_PAYLOAD,
-			Payload: &core.Version1MessageLoginPayload{
-				Username: username,
-				Password: password,
-			},
-		},
-	}
-
-	return loginData, nil
-}
-
-func (c *Client) sendMove(position int) error {
-	msg := &core.TicTacToeMessage{
-		MessageId: UUID("msg"),
-		Version:   "v1",
-		Payload: &core.Version1MessagePayload{
-			MessageType: core.PLAYER_MOVE,
-			Payload: &core.Version1PositionMoveRequestPayload{
-				Position: position,
-				Symbol:   c.mySymbol,
-			},
-		},
-	}
-	return c.sendMessage(msg)
-}
-
-func (c *Client) sendMessage(msg *core.TicTacToeMessage) error {
-
-	msgBytes, err := json.Marshal(msg)
-	if err != nil {
-		return fmt.Errorf("failed to marshal message: %w", err)
-	}
-
-	msgBytes = append(msgBytes, []byte("\n")...)
-	writer := bufio.NewWriter(c.conn)
-	if err := json.NewEncoder(writer).Encode(&msgBytes); err != nil {
-		log.Printf("Encoding error: %v", err)
-		return err
-	}
-
-	err = writer.Flush()
-	if err != nil {
-		log.Printf("Flush error: %v", err)
-		return err
-	}
-	return nil
 }
 
 func (c *Client) Disconnect() {
@@ -244,13 +110,4 @@ func (c *Client) Disconnect() {
 	if err != nil {
 		log.Printf("Failed to close connection. %v", err)
 	}
-}
-
-func UUID(prefix string) string {
-	newUUID, err := uuid.NewUUID()
-	if err != nil {
-		log.Printf("UUID generation error: %v", err)
-		return ""
-	}
-	return fmt.Sprintf("%s-%s", prefix, newUUID.String())
 }
