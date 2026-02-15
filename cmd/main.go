@@ -9,18 +9,17 @@ import (
 )
 
 func main() {
-	fmt.Println("!!! Starting the tic tac toe client !!!")
+	fmt.Println("!!! Starting the tic tac toe !!!")
 	cmdUI := internal.NewCMDClient()
 
 	router := internal.NewMessageRouter()
-	loginRequestHandler := internal.NewLoginRequestHandler(cmdUI)
 	router.RegisterHandler(core.MSG_LOGIN_RESPONSE, internal.NewLoginResponseHandler(cmdUI))
 	router.RegisterHandler(core.GAME_START, internal.NewGameStartHandler(cmdUI))
 	router.RegisterHandler(core.GAME_END, internal.NewGameEndHandler(cmdUI))
 	router.RegisterHandler(core.PLAYER_MOVE_RESPONSE, internal.NewPlayerMoveResponseHandler(cmdUI))
-	router.RegisterHandler(core.MSG_LOGIN_REQUEST, loginRequestHandler)
+	router.RegisterHandler(core.MSG_LOGIN_REQUEST, internal.NewLoginRequestHandler(cmdUI))
 
-	client := internal.NewClient("tictactoe", cmdUI, router, loginRequestHandler)
+	client := internal.NewClient(router)
 	err := client.Connect(internal.ServerAddr)
 	if err != nil {
 		log.Fatal(err)

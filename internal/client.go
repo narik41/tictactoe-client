@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"sync"
 	"time"
 )
 
@@ -16,30 +15,18 @@ const (
 )
 
 type Client struct {
-	conn         net.Conn
-	reader       *bufio.Reader
-	writer       *bufio.Writer
-	mu           sync.Mutex
-	symbol       string
-	opponent     string
-	gameID       string
-	myTurn       bool
-	gameActive   bool
-	board        [9]string
-	name         string
-	mySymbol     string
-	ui           ClientUI
-	router       *MessageRouter
-	loginRequest LoginRequestHandler
+	conn      net.Conn
+	myTurn    bool
+	board     [9]string
+	mySymbol  string
+	router    *MessageRouter
+	hcManager *HealthCheckManager
 }
 
-func NewClient(name string, ui ClientUI, router *MessageRouter, loginRequest LoginRequestHandler) *Client {
+func NewClient(router *MessageRouter) *Client {
 	return &Client{
-		name:         name,
-		board:        [9]string{"", "", "", "", "", "", "", "", ""},
-		ui:           ui,
-		router:       router,
-		loginRequest: loginRequest,
+		board:  [9]string{"", "", "", "", "", "", "", "", ""},
+		router: router,
 	}
 }
 
@@ -51,8 +38,6 @@ func (c *Client) Connect(addr string) error {
 		conn, err := net.Dial("tcp", addr)
 		if err == nil {
 			c.conn = conn
-			c.reader = bufio.NewReader(conn)
-			c.writer = bufio.NewWriter(conn)
 			fmt.Println("Connected to ", conn.RemoteAddr())
 			break
 		}
@@ -65,6 +50,7 @@ func (c *Client) Connect(addr string) error {
 		fmt.Println("Connection failed. Retrying in 2 seconds...")
 		time.Sleep(retryDelay)
 	}
+	c.hcManager = NewHealthCheckManager(c)
 	return nil
 }
 
@@ -72,15 +58,9 @@ func (c *Client) Start() {
 	defer c.Disconnect()
 
 	responseSender := NewResponseSender()
-	//handlerResponse, err := c.loginRequest.DisplayLoginForm(c)
-	//if err != nil {
-	//	fmt.Println("Failed to display login form")
-	//	return
-	//}
-	//
-	//responseSender.Send(c, handlerResponse)
 	rw := bufio.NewReadWriter(bufio.NewReader(c.conn), bufio.NewWriter(c.conn))
 	decoder := NewMessageDecoder(rw)
+	c.hcManager.Start(responseSender)
 	for {
 		decodedMessage, err := decoder.Decode()
 		if err != nil {

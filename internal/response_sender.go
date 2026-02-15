@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"time"
 
 	"github.com/narik41/tictactoe-message/core"
 )
@@ -58,7 +57,7 @@ func (rs *ResponseSender) encodeMessage(messageType core.Version1MessageType, pa
 	msg := core.TicTacToeMessage{
 		MessageId: core.UUID("msg"),
 		Version:   "v1",
-		Timestamp: time.Now().UnixMilli(),
+		Timestamp: core.GetNPTToUtcInMillisecond(),
 		Payload:   payload,
 	}
 
