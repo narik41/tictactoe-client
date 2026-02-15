@@ -1,4 +1,4 @@
-package internal
+package templates
 
 import (
 	"bufio"
@@ -8,24 +8,24 @@ import (
 	"strings"
 )
 
-type ClientUI interface {
+type UI interface {
 	DisplayBoard(userSymbol string, board [9]string)
 	PromptForMove() (int, error)
 	DisplayWinner(symbol string)
 	PromptCredentials() (string, string, error)
 }
 
-type CMDClientUI struct {
+type ConsoleUi struct {
 	reader *bufio.Reader
 }
 
-func NewCMDClient() ClientUI {
-	return &CMDClientUI{
+func NewConsoleUI() UI {
+	return &ConsoleUi{
 		reader: bufio.NewReader(os.Stdin),
 	}
 }
 
-func (c CMDClientUI) DisplayBoard(userSymbol string, board [9]string) {
+func (c ConsoleUi) DisplayBoard(userSymbol string, board [9]string) {
 	fmt.Println("╔═══════════════╗")
 	fmt.Printf("║ You are: %s    ║\n", userSymbol)
 	fmt.Println("╚═══════════════╝")
@@ -51,7 +51,7 @@ func (c CMDClientUI) DisplayBoard(userSymbol string, board [9]string) {
 	fmt.Println()
 }
 
-func (c CMDClientUI) PromptForMove() (int, error) {
+func (c ConsoleUi) PromptForMove() (int, error) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("\n╔════════════════════════╗")
@@ -77,7 +77,7 @@ func (c CMDClientUI) PromptForMove() (int, error) {
 	return position, nil
 }
 
-func (c CMDClientUI) DisplayWinner(symbol string) {
+func (c ConsoleUi) DisplayWinner(symbol string) {
 
 	fmt.Println("\n╔════════════════════════╗")
 	fmt.Printf("║  Game Ended. Winner %s ║\n", symbol)
@@ -85,7 +85,7 @@ func (c CMDClientUI) DisplayWinner(symbol string) {
 
 }
 
-func (m CMDClientUI) PromptCredentials() (string, string, error) {
+func (m ConsoleUi) PromptCredentials() (string, string, error) {
 	fmt.Println("\n" + strings.Repeat("=", 50))
 	fmt.Println("TICTACTOE GAME - LOGIN")
 	fmt.Println(strings.Repeat("=", 50))

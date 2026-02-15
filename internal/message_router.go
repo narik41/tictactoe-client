@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 
+	"github.com/narik41/tictactoe-client/internal/decoder"
 	"github.com/narik41/tictactoe-message/core"
 )
 
@@ -16,7 +17,7 @@ type HandlerResponse struct {
 }
 
 type MessageHandler interface {
-	Handle(msg *DecodedMessage, session *Client) (*HandlerResponse, error)
+	Handle(msg *decoder.DecodedMessage, session *Client) (*HandlerResponse, error)
 }
 
 func NewMessageRouter() *MessageRouter {
@@ -31,7 +32,7 @@ func (r *MessageRouter) RegisterHandler(msgType core.Version1MessageType, handle
 	r.handlers[msgType] = handler
 }
 
-func (r *MessageRouter) Route(msg *DecodedMessage, client *Client) (*HandlerResponse, error) {
+func (r *MessageRouter) Route(msg *decoder.DecodedMessage, client *Client) (*HandlerResponse, error) {
 
 	handler, exists := r.handlers[msg.MessageType]
 	if !exists {

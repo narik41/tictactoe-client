@@ -5,20 +5,22 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/narik41/tictactoe-client/internal/decoder"
+	"github.com/narik41/tictactoe-client/internal/templates"
 	"github.com/narik41/tictactoe-message/core"
 )
 
 type LoginResponseHandler struct {
-	cmdUI ClientUI
+	cmdUI templates.UI
 }
 
-func NewLoginResponseHandler(cmdUI ClientUI) LoginResponseHandler {
+func NewLoginResponseHandler(cmdUI templates.UI) LoginResponseHandler {
 	return LoginResponseHandler{
 		cmdUI: cmdUI,
 	}
 }
 
-func (a LoginResponseHandler) Handle(msg *DecodedMessage, client *Client) (*HandlerResponse, error) {
+func (a LoginResponseHandler) Handle(msg *decoder.DecodedMessage, client *Client) (*HandlerResponse, error) {
 
 	jsonBytes, err := json.Marshal(msg.Payload)
 	if err != nil {

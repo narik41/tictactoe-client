@@ -3,20 +3,22 @@ package internal
 import (
 	"encoding/json"
 
+	"github.com/narik41/tictactoe-client/internal/decoder"
+	"github.com/narik41/tictactoe-client/internal/templates"
 	"github.com/narik41/tictactoe-message/core"
 )
 
 type PlayerMoveResponseHandler struct {
-	cmdUI ClientUI
+	cmdUI templates.UI
 }
 
-func NewPlayerMoveResponseHandler(cmdUI ClientUI) PlayerMoveResponseHandler {
+func NewPlayerMoveResponseHandler(cmdUI templates.UI) PlayerMoveResponseHandler {
 	return PlayerMoveResponseHandler{
 		cmdUI: cmdUI,
 	}
 }
 
-func (a PlayerMoveResponseHandler) Handle(msg *DecodedMessage, client *Client) (*HandlerResponse, error) {
+func (a PlayerMoveResponseHandler) Handle(msg *decoder.DecodedMessage, client *Client) (*HandlerResponse, error) {
 	//log.Println("PlayerMoveResponseHandler: Handling the player move response")
 	jsonBytes, err := json.Marshal(msg.Payload)
 	if err != nil {

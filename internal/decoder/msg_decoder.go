@@ -1,4 +1,4 @@
-package internal
+package decoder
 
 import (
 	"bufio"
@@ -116,7 +116,7 @@ func (d *MessageDecoder) decodeV1Payload(payload interface{}) (*core.Version1Mes
 
 	return &v1Payload, nil
 }
- 
+
 type DecodedMessage struct {
 	MessageId   string
 	Version     string

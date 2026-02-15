@@ -4,20 +4,22 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/narik41/tictactoe-client/internal/decoder"
+	"github.com/narik41/tictactoe-client/internal/templates"
 	"github.com/narik41/tictactoe-message/core"
 )
 
 type GameEndHandler struct {
-	cmdUI ClientUI
+	cmdUI templates.UI
 }
 
-func NewGameEndHandler(cmdUI ClientUI) GameEndHandler {
+func NewGameEndHandler(cmdUI templates.UI) GameEndHandler {
 	return GameEndHandler{
 		cmdUI: cmdUI,
 	}
 }
 
-func (a GameEndHandler) Handle(msg *DecodedMessage, client *Client) (*HandlerResponse, error) {
+func (a GameEndHandler) Handle(msg *decoder.DecodedMessage, client *Client) (*HandlerResponse, error) {
 	log.Println("GameEndHandler: Handling the end start msg type")
 	jsonBytes, err := json.Marshal(msg.Payload)
 	if err != nil {

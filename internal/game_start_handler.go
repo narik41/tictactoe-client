@@ -3,20 +3,22 @@ package internal
 import (
 	"encoding/json"
 
+	"github.com/narik41/tictactoe-client/internal/decoder"
+	"github.com/narik41/tictactoe-client/internal/templates"
 	"github.com/narik41/tictactoe-message/core"
 )
 
 type GameStartHandler struct {
-	cmdUI ClientUI
+	cmdUI templates.UI
 }
 
-func NewGameStartHandler(cmdUI ClientUI) GameStartHandler {
+func NewGameStartHandler(cmdUI templates.UI) GameStartHandler {
 	return GameStartHandler{
 		cmdUI: cmdUI,
 	}
 }
 
-func (a GameStartHandler) Handle(msg *DecodedMessage, client *Client) (*HandlerResponse, error) {
+func (a GameStartHandler) Handle(msg *decoder.DecodedMessage, client *Client) (*HandlerResponse, error) {
 	//log.Println("GameStartHandler: Handling the game start msg type")
 	jsonBytes, err := json.Marshal(msg.Payload)
 	if err != nil {

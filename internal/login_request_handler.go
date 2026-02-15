@@ -4,20 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/narik41/tictactoe-client/internal/decoder"
+	"github.com/narik41/tictactoe-client/internal/templates"
 	"github.com/narik41/tictactoe-message/core"
 )
 
 type LoginRequestHandler struct {
-	clientUi ClientUI
+	clientUi templates.UI
 }
 
-func NewLoginRequestHandler(clientUi ClientUI) LoginRequestHandler {
+func NewLoginRequestHandler(clientUi templates.UI) LoginRequestHandler {
 	return LoginRequestHandler{
 		clientUi: clientUi,
 	}
 }
 
-func (a LoginRequestHandler) Handle(msg *DecodedMessage, client *Client) (*HandlerResponse, error) {
+func (a LoginRequestHandler) Handle(msg *decoder.DecodedMessage, client *Client) (*HandlerResponse, error) {
 	//log.Println("LoginRequestHandler: Display the prompt to login")
 	jsonBytes, err := json.Marshal(msg.Payload)
 	if err != nil {

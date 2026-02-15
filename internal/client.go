@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 	"time"
+
+	decoder2 "github.com/narik41/tictactoe-client/internal/decoder"
 )
 
 const (
@@ -15,12 +17,11 @@ const (
 )
 
 type Client struct {
-	conn      net.Conn
-	myTurn    bool
-	board     [9]string
-	mySymbol  string
-	router    *MessageRouter
-	hcManager *HealthCheckManager
+	conn     net.Conn
+	myTurn   bool
+	board    [9]string
+	mySymbol string
+	router   *MessageRouter
 }
 
 func NewClient(router *MessageRouter) *Client {
@@ -50,7 +51,6 @@ func (c *Client) Connect(addr string) error {
 		fmt.Println("Connection failed. Retrying in 2 seconds...")
 		time.Sleep(retryDelay)
 	}
-	c.hcManager = NewHealthCheckManager(c)
 	return nil
 }
 
@@ -59,8 +59,7 @@ func (c *Client) Start() {
 
 	responseSender := NewResponseSender()
 	rw := bufio.NewReadWriter(bufio.NewReader(c.conn), bufio.NewWriter(c.conn))
-	decoder := NewMessageDecoder(rw)
-	c.hcManager.Start(responseSender)
+	decoder := decoder2.NewMessageDecoder(rw)
 	for {
 		decodedMessage, err := decoder.Decode()
 		if err != nil {
