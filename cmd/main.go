@@ -10,10 +10,8 @@ import (
 func main() {
 	fmt.Println("!!! Starting the tic tac toe client !!!")
 
-	v1MsgHandler := internal.NewVersion1MsgHandler()
-	msgHandler := internal.NewMessageHandler(v1MsgHandler)
-	msgReceiver := internal.NewMsgReceiver()
-	client := internal.NewClient("tictactoe", msgReceiver, msgHandler)
+	cmdUI := internal.NewCMDClient()
+	client := internal.NewClient("tictactoe", cmdUI)
 	err := client.Connect(internal.ServerAddr)
 	if err != nil {
 		log.Fatal(err)
